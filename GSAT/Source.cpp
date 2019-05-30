@@ -2,6 +2,7 @@
 #include <vector>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
 
 using namespace std;
 
@@ -18,31 +19,48 @@ struct variable {
 };
 
 void printData(vector<vector<variable*>> imps, vector<bool> variables, vector<bool>negations) {
+	ofstream output("output.txt");
 	cout << "Oryginalne wartosci zmiennych: "<<endl;
 	for (int i = 0; i < variables.size(); i++) {
 		cout << "x" << i << " = " << variables[i] << endl;
 	}
-	cout << "W artosci zmiennych po przeprowadzeniu algorytmu GSAT: " << endl;
+	cout << "Wartosci zmiennych po przeprowadzeniu algorytmu WalkSAT: " << endl;
 	for (int i = 0; i < variables.size(); i++) {
-		if (negations[i])
+		if (negations[i]) {
 			cout << "~x" << i << " = " << !variables[i] << endl;
-		else
+			output << "~x" << i << " = " << !variables[i] << endl;
+		}
+		else {
 			cout << "x" << i << " = " << variables[i] << endl;
+			output << "~x" << i << " = " << !variables[i] << endl;
+		}
 	}
+	cout << "y = ";
 	for (int i = 0; i < imps.size(); i++) {
 		cout << "( ";
+		output << "( ";
 		for (int j = 0; j < imps[i].size(); j++) {
-			if (imps[i][j]->isNot)
+			if (imps[i][j]->isNot) {
 				cout << "~x";
-			else
+				output << "~x";
+			}
+			else {
 				cout << "x";
+				output << "x";
+			}
 			cout << imps[i][j]->id;
-			if (j != imps[i].size() - 1)
-				cout << " \\/ ";
+			output << imps[i][j]->id;
+			if (j != imps[i].size() - 1) {
+				cout << " + ";
+				output << " + ";
+			}
 		}
 		cout << " )";
-		if (i != imps.size() - 1)
-			cout << " /\\ ";
+		output << " ) ";
+		if (i != imps.size() - 1) {
+			cout << " * ";
+			output << " * ";
+		}
 	}
 	cout << endl;
 }
@@ -121,7 +139,7 @@ bool isSatisfied(vector<vector<variable*>> imps, vector<bool> variables, vector<
 	}
 	return true;
 }
-void GSat() {
+void walkSat() {
 	srand(time(NULL));
 	long iterations = 0;
 	vector<vector<variable*>>imps;
@@ -139,10 +157,15 @@ void GSat() {
 		negations[temp] = !negations[temp];
 		iterations++;
 	}
-	printData(imps, variables, negations);
-	cout << "Liczba iteracji: " << iterations << endl;
+	if (iterations < 1000) {
+		printData(imps, variables, negations);
+		cout << "Liczba iteracji: " << iterations << endl;
+	}
+	else
+		cout << "Brak rozwiazania" << endl;
 }
 int main() {
-	GSat();
+	cout << "Program rozwiazujacy problem spelnialnosci SAT przy uzyciu algorytmu WalkSAT."<<endl;
+	walkSat();
 	return 0;
 }
