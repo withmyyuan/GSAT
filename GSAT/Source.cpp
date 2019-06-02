@@ -18,21 +18,23 @@ struct variable {
 	}
 };
 
-void printData(vector<vector<variable*>> imps, vector<bool> variables, vector<bool>negations) {
+void printData(vector<vector<variable*>> imps, vector<bool> variables, vector<bool>negations, bool completed) {
 	ofstream output("output.txt");
 	cout << "Oryginalne wartosci zmiennych: "<<endl;
 	for (int i = 0; i < variables.size(); i++) {
 		cout << "x" << i << " = " << variables[i] << endl;
 	}
-	cout << "Wartosci zmiennych po przeprowadzeniu algorytmu WalkSAT: " << endl;
-	for (int i = 0; i < variables.size(); i++) {
-		if (negations[i]) {
-			cout << "~x" << i << " = " << !variables[i] << endl;
-			output << "~x" << i << " = " << !variables[i] << endl;
-		}
-		else {
-			cout << "x" << i << " = " << variables[i] << endl;
-			output << "~x" << i << " = " << !variables[i] << endl;
+	if (completed) {
+		cout << "Wartosci zmiennych po przeprowadzeniu algorytmu WalkSAT: " << endl;
+		for (int i = 0; i < variables.size(); i++) {
+			if (negations[i]) {
+				cout << "~x" << i << " = " << !variables[i] << endl;
+				output << "~x" << i << " = " << !variables[i] << endl;
+			}
+			else {
+				cout << "x" << i << " = " << variables[i] << endl;
+				output << "~x" << i << " = " << !variables[i] << endl;
+			}
 		}
 	}
 	cout << "y = ";
@@ -84,11 +86,11 @@ void generateImps(vector<vector<variable*>>& imps, vector<bool> &variables, vect
 	do {
 		cout << "Minimalny rozmiar implicentu: ";
 		cin >> kMin;
-	} while (kMin <= 0 || kMin >= n);
+	} while (kMin <= 0 || kMin > n);
 	do {
 		cout << "Maksymalny rozmiar implicentu: ";
 		cin >> kMax;
-	} while (kMax < kMin || kMax>= n);
+	} while (kMax < kMin || kMax> n);
 	for (int i = 0; i < imNo; i++) {
 		if (kMax == kMin)
 			k = kMax;
@@ -169,7 +171,7 @@ void walkSat() {
 	vector<int> falseImpsIndex;
 	int temp;
 	generateImps(imps, variables, negations);
-	while (!isSatisfied(imps, variables, negations) && iterations <100000) {
+	while (!isSatisfied(imps, variables, negations) && iterations <10000) {
 		falseImpsIndex = getFalseImpsIndex(imps, variables, negations);
 		temp = falseImpsIndex[rand() % falseImpsIndex.size()];
 		variablesInFalseImp = imps[temp];
@@ -177,12 +179,14 @@ void walkSat() {
 		negations[temp] = !negations[temp];
 		iterations++;
 	}
-	if (iterations < 100000) {
-		printData(imps, variables, negations);
+	if (iterations < 10000) {
+		printData(imps, variables, negations, 1);
 		cout << "Liczba iteracji: " << iterations << endl;
 	}
-	else
-		cout << "Brak rozwiazania" << endl;
+	else {
+		printData(imps, variables, negations, 0);
+		cout << "Brak rozwiazania, przekroczono " <<iterations<<" iteracji"<< endl;
+	}
 }
 int main() {
 	cout << "Program rozwiazujacy problem spelnialnosci SAT przy uzyciu algorytmu WalkSAT."<<endl;
