@@ -65,7 +65,9 @@ void printData(vector<vector<variable*>> imps, vector<bool> variables, vector<bo
 	cout << endl;
 }
 void generateImps(vector<vector<variable*>>& imps, vector<bool> &variables, vector<bool> &negations) {
-	int imNo, n, k, tempInt;
+	int imNo, n, k=0, tempInt, kMin, kMax;
+	bool flag;
+	variable* tempVariable;
 	vector<variable*>temp;
 	do {
 		cout << "Liczba implicentow: ";
@@ -79,13 +81,31 @@ void generateImps(vector<vector<variable*>>& imps, vector<bool> &variables, vect
 		variables.push_back(rand() % 2);
 		negations.push_back(false);
 	}
+	do {
+		cout << "Minimalny rozmiar implicentu: ";
+		cin >> kMin;
+	} while (kMin <= 0 || kMin >= n);
+	do {
+		cout << "Maksymalny rozmiar implicentu: ";
+		cin >> kMax;
+	} while (kMax < kMin || kMax>= n);
 	for (int i = 0; i < imNo; i++) {
-		do {
-			cout << "Rozmiar implicentu " << i + 1 << ": ";
-			cin >> k;
-		} while (k <= 0);
+		if (kMax == kMin)
+			k = kMax;
+		else
+			k = rand() % (kMax - kMin) + kMin;
 		for (int j = 0; j < k; j++) {
-			temp.push_back(new variable(rand() % n));
+			do {
+				flag = false;
+				tempVariable = new variable(rand() % n);
+				for (int k = 0; k < temp.size(); k++) {
+					if (temp[k]->id == tempVariable->id) {
+						flag = true;
+						break;
+					}
+				}
+			} while (flag);
+			temp.push_back(tempVariable);
 			tempInt = rand() % 2;
 			if (tempInt == 1)
 				temp[j]->negation();
@@ -149,7 +169,7 @@ void walkSat() {
 	vector<int> falseImpsIndex;
 	int temp;
 	generateImps(imps, variables, negations);
-	while (!isSatisfied(imps, variables, negations) && iterations <1000) {
+	while (!isSatisfied(imps, variables, negations) && iterations <100000) {
 		falseImpsIndex = getFalseImpsIndex(imps, variables, negations);
 		temp = falseImpsIndex[rand() % falseImpsIndex.size()];
 		variablesInFalseImp = imps[temp];
@@ -157,7 +177,7 @@ void walkSat() {
 		negations[temp] = !negations[temp];
 		iterations++;
 	}
-	if (iterations < 1000) {
+	if (iterations < 100000) {
 		printData(imps, variables, negations);
 		cout << "Liczba iteracji: " << iterations << endl;
 	}
